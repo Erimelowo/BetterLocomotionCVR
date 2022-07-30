@@ -2,8 +2,7 @@
 
 # BetterLocomotion
 
-A VRChat mod to enhance locomotion for VRChat using MelonLoader.  
-Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
+A Melonloader mod to enhance locomotion for ChilloutVR.  
 
 ## Features
 

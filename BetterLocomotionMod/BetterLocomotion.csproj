@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
-		<VrcReferences>true</VrcReferences>
+		<CvrReferences>true</CvrReferences>
 		<CopyToMods>true</CopyToMods>
 		<LangVersion>latest</LangVersion>
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>

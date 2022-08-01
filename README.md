@@ -2,7 +2,7 @@
 
 # BetterLocomotion
 
-A Melonloader mod to enhance locomotion for ChilloutVR.  
+A Melonloader mod to enhance locomotion for ChilloutVR.
 
 ## Features
 
@@ -20,17 +20,18 @@ A Melonloader mod to enhance locomotion for ChilloutVR.
 
 ## Dependency
 
-## Credit/Special thanks
+- TODO
 
-- Davi's [BetterDirection](https://github.com/d-magit/VRC-Mods) mod (original mod)
-- [AxisAngle](https://twitter.com/DonaldFReynolds) (for the logic with angles/movement)
-- SDraw's [Calibration Lines Visualizer](https://github.com/SDraw/ml_mods) mod (code to find SteamVR trackers)
-- Patchuuri for naming Lolimotion :3
+## Credits/Special thanks
+
+- [Davi](https://github.com/d-magit) for making the original BetterDirection mod.
+- [AxisAngle](https://twitter.com/DonaldFReynolds) for the logic with angles/movement.
 - [ballfun](https://github.com/ballfn) for improved Decamove support.
+- [SDraw](https://github.com/sdraw) for SteamVR tracker-related code.
 
 ## Installation
 
-**Before installing: I am not affiliated with ABI and this mod breaking is in no way ABI's fault.**
+**Before installing: I am in no way affiliated with ABI and this mod breaking is not ABI's fault.**
 
 Install [MelonLoader](https://melonwiki.xyz/#/) and drop [BetterLocomotion.dll](https://github.com/Louka3000/BetterLocomotionCVR/releases/latest/download/BetterLocomotion.dll) in your mods folder.
 

@@ -20,10 +20,9 @@ A Melonloader mod to improve locomotion for ChilloutVR.
 
 ## Credits/Special thanks
 
-- [Davi](https://github.com/d-magit) for making the original BetterDirection mod.
+- [Davi](https://github.com/d-magit) for making the original BetterDirections mod.
 - [AxisAngle](https://twitter.com/DonaldFReynolds) for the logic with angles/movement.
 - [ballfun](https://github.com/ballfn) for improved Decamove support.
-- [SDraw](https://github.com/sdraw) for SteamVR tracker-related code.
 
 ## Installation
 

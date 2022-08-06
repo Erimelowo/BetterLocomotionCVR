@@ -1,22 +1,18 @@
-# WIP. Not functional yet (I'm waiting on a lib for UI like UIExpansionKit :P)
+## WIP
 
 # BetterLocomotion
 
-A Melonloader mod to enhance locomotion for ChilloutVR.
+A Melonloader mod to improve locomotion for ChilloutVR.
 
 ## Features
 
-- **Fixes the inconvenience that happens because of Euler angles when moving while looking up**, usually while laying down or cuddling, for example.
-- **Allows you to set a threshold for movement to compensate for joystick drift** while keeping that smooth acceleration effect.
-- **Choose between head, hip or chest locomotion.** This allows hip or chest locomotion, allowing you move towards your hip or chest instead of your head. _Just like Decamove but without the VRChat "head bias"._
-- Hip and chest locomotion works in 4-point tracking, 6-point tracking or more.
-- Improve Decamove support. On top of moving towards your hip, you will also go faster towards your hip instead of your head when using decamove. (Thanks [ballfun](https://github.com/ballfn))
+- **Fixes the inconvenience that happens when moving while looking up**, usually while laying down or cuddling, for example.
+- **Hip locomotion.** Allows you move towards your hip tracker instead of your head to be able to look around while moving.
+- **Improves Decamove support.** Makes the behaviour of decamove better.
 
 ## Settings descriptions
 
-- **Locomotion mode**: which reference should be used for locomotion (head, hip, chest or decamove)
-- **Joystick threshold (0-1)**: prevents you from moving if your joystick's inclination is below that threshold. 0 being no threshold and 1 requiring you to tilt your joystick all the way to move.
-- **Show deca QM button**: toggle the Decamove calibration button on the quick menu.
+- **Locomotion mode**: which reference should be used for locomotion (head, hip or decamove)
 
 ## Dependency
 

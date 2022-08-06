@@ -7,34 +7,28 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.XR;
 using MelonLoader;
-using BuildInfo = BetterLocomotion.BuildInfo;
-using Main = BetterLocomotion.Main;
 using DecaSDK;
+using ABI_RC.Core;
+using ABI_RC.Core.Player;
 
-[assembly: AssemblyCopyright("Created by " + BuildInfo.Author)]
-[assembly: MelonInfo(typeof(Main), BuildInfo.Name, BuildInfo.Version, BuildInfo.Author)]
+[assembly: AssemblyCopyright("Created by " + "Erimel & AxisAngle")]
+[assembly: MelonInfo(typeof(BetterLocomotion.Main), "BetterLocomotion", "0.1.0", "Erimel & AxisAngle")]
 [assembly: MelonGame("Alpha Blend Interactive", "ChilloutVR")]
 [assembly: MelonColor(ConsoleColor.Magenta)]
 [assembly: MelonOptionalDependencies("TODO")]
 
 namespace BetterLocomotion
 {
-    public static class BuildInfo
-    {
-        public const string Name = "BetterLocomotion";
-        public const string Author = "Erimel, AxisAngle & Davi";
-        public const string Version = "1.0.0";
-    }
-
     public class Main : MelonMod
     {
         private enum Locomotion { Head, Hip, /*Chest,*/ Deca }
+
         internal static MelonLogger.Instance Logger;
         private static HarmonyLib.Harmony _hInstance;
-        private static DecaMoveBehaviour deca;
 
-        private static UnityEngine.UI.Button decaButton;
         private static bool _xrPresent;
+
+        private static DecaMoveBehaviour deca;
 
         public override void OnApplicationStart()
         {
@@ -44,23 +38,18 @@ namespace BetterLocomotion
             InitializeSettings();
             OnPreferencesSaved();
 
-            _xrPresent = XRDevice.isPresent;
+            MelonCoroutines.Start(WaitForXRDevice());
+        }
 
+        IEnumerator WaitForXRDevice()
+        {
+            // Waits for XRDevice.isPresent to be defined
+            yield return new WaitForSeconds(0.1f);
+
+            _xrPresent = XRDevice.isPresent;
             if (_xrPresent)
             {
-                // Patches
-                MethodsResolver.ResolveMethods(Logger);
-                if (MethodsResolver.PlayerLocomotion != null)
-                    HarmonyInstance.Patch(MethodsResolver.PlayerLocomotion, null,
-                        new HarmonyMethod(typeof(Main), nameof(CalculateDirection)));
-                if (MethodsResolver.PrepareForCalibration != null)
-                    HarmonyInstance.Patch(MethodsResolver.PrepareForCalibration, null,
-                        new HarmonyMethod(typeof(Main), nameof(StartFBTCalibration)));
-                if (MethodsResolver.RestoreTrackingAfterCalibration != null)
-                    HarmonyInstance.Patch(MethodsResolver.RestoreTrackingAfterCalibration, null,
-                        new HarmonyMethod(typeof(Main), nameof(FinishFBTCalibration)));
-
-                Logger.Msg("Successfully loaded!");
+                InitializeMod();
             }
             else
             {
@@ -68,28 +57,34 @@ namespace BetterLocomotion
             }
         }
 
-        public override void OnApplicationQuit()
+        private void InitializeMod()
         {
-            if (deca != null) deca.OnDestroy();
+            // Patches
+            MethodsResolver.ResolveMethods(Logger);
+            if (MethodsResolver.PlayerLocomotion != null)
+                HarmonyInstance.Patch(MethodsResolver.PlayerLocomotion, null,
+                    new HarmonyMethod(typeof(Main), nameof(CalculateDirection)));
+            if (MethodsResolver.StartCalibration != null)
+                HarmonyInstance.Patch(MethodsResolver.StartCalibration, null,
+                    new HarmonyMethod(typeof(Main), nameof(StartFBTCalibration)));
+            if (MethodsResolver.FinishCalibration != null)
+                HarmonyInstance.Patch(MethodsResolver.FinishCalibration, null,
+                    new HarmonyMethod(typeof(Main), nameof(FinishFBTCalibration)));
+
+            Logger.Msg("Successfully initialized!");
         }
 
         private static MelonPreferences_Entry<Locomotion> _locomotionMode;
-        private static MelonPreferences_Entry<float> _joystickThreshold;
-        private static MelonPreferences_Entry<bool> _lolimotion;
-        private static MelonPreferences_Entry<float> _lolimotionMinimum;
-        private static MelonPreferences_Entry<float> _lolimotionMaximum;
-        private static MelonPreferences_Entry<bool> _decaButton;
-
         private static void InitializeSettings()
         {
             MelonPreferences.CreateCategory("BetterLocomotion", "BetterLocomotion");
 
             _locomotionMode = MelonPreferences.CreateEntry("BetterLocomotion", "LocomotionMode", Locomotion.Head, "Locomotion mode");
-            _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick threshold (0-1)");
-            _lolimotion = MelonPreferences.CreateEntry("BetterLocomotion", "Lolimotion", false, "Lolimotion (scale speed to height)");
-            _lolimotionMinimum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMinimum", 0.5f, "Lolimotion: minimum height");
-            _lolimotionMaximum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMaximum", 1.1f, "Lolimotion: maximum height");
-            _decaButton = MelonPreferences.CreateEntry("BetterLocomotion", "DecaButton", false, "Show deca QM button");
+        }
+
+        public override void OnApplicationQuit()
+        {
+            if (deca != null) deca.OnDestroy();
         }
 
         private static bool _decaDllLoaded;
@@ -114,6 +109,7 @@ namespace BetterLocomotion
                     }
                     _decaDllLoaded = true;
                 }
+
                 if (deca == null)
                 {
                     deca = new DecaMoveBehaviour
@@ -123,53 +119,26 @@ namespace BetterLocomotion
                     };
                     Logger.Msg("Deca Created");
                 }
-                if (decaButton != null) decaButton.enabled = _decaButton.Value;
+
+                //if (decaButton != null) decaButton.enabled = true;
             }
             else
             {
-                if (decaButton != null) decaButton.enabled = false;
+                //if (decaButton != null) decaButton.enabled = false;
             }
         }
 
-        // Called by the decaButton to calibrate deca
-        public static void DecaCalibrate()
-        {
-            if (deca != null) deca.Calibrate();
-        }
 
-        private static VRCPlayer GetLocalPlayer() => VRCPlayer.field_Internal_Static_VRCPlayer_0;
+        private static PlayerSetup GetLocalPlayer() => PlayerSetup.Instance;
 
-        private static SteamVR_ControllerManager GetSteamVRControllerManager()
-        {
-            var inputProcessor = VRCInputManager.field_Private_Static_Dictionary_2_InputMethod_VRCInputProcessor_0;
-            if (!(inputProcessor?.Count > 0)) return null;
-            VRCInputProcessor lInput = inputProcessor[VRCInputManager.InputMethod.Vive];
-            if (lInput == null) return null;
-            VRCInputProcessorVive lViveInput = lInput.TryCast<VRCInputProcessorVive>();
+        private static bool CheckIfInFbt() => GetLocalPlayer().fullBodyActive;
 
-            SteamVR_ControllerManager lResult = null;
-            if (lViveInput != null) lResult = lViveInput.field_Private_SteamVR_ControllerManager_0;
-            return lResult;
-        }
+        private static VRTrackerManager GetTrackerManager() => GetLocalPlayer()._trackerManager;
 
-        private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
-        private static float GetAvatarScaledSpeed()
-        {
-            float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.05f, 2f);
-            float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 5f);
-            return Mathf.Clamp(height, minimum, maximum) / maximum;
-        }
         public override void OnUpdate()
         {
             if (_xrPresent)
             {
-                if (_isCalibrating)
-                {
-                    getTrackerHip = GetTracker(HumanBodyBones.Hips) ?? GetTracker(HumanBodyBones.Chest);
-                    getTrackerChest = GetTracker(HumanBodyBones.Chest);
-                    _CalibrationSavingSaverTimer++;
-                }
-
                 if (_locomotionMode.Value == Locomotion.Deca && deca != null)
                 {
                     deca.Update();
@@ -177,25 +146,20 @@ namespace BetterLocomotion
             }
         }
 
-
-
         private static void StartFBTCalibration()
         {
-            _CalibrationSavingSaverTimer = 0;
             _isCalibrating = true;
         }
 
-        // Gets the trackers or bones and creates the offset GameObjects
         private static void FinishFBTCalibration()
         {
-            _isInFbt = true;
             _isCalibrating = false;
-            _avatarScaledSpeed = GetAvatarScaledSpeed();
+            _isInFbt = true;
 
-            if (_CalibrationSavingSaverTimer > 6 || _offsetHip == null) // 6 frames for saved calibration (IKTweaks' universal calibration for example)
+            if (_offsetHip == null)
             {
-                _hipTransform = getTrackerHip ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
-                _chestTransform = getTrackerChest ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest);
+                _hipTransform = GetTrackerManager().hipCandidate.transform;
+                //_chestTransform = GetTrackerManager().chestCandidate.transform;
 
                 Quaternion rotation = Quaternion.FromToRotation(_headTransform.up, Vector3.up) * _headTransform.rotation;
 
@@ -207,71 +171,31 @@ namespace BetterLocomotion
                     rotation = rotation
                 }
                 };
-                _offsetChest = new GameObject
+                /*_offsetChest = new GameObject
                 {
                     transform =
                 {
                     parent = _chestTransform,
                     rotation = rotation
                 }
-                };
+                };*/
             }
-        }
-
-        private static readonly HumanBodyBones[] LinkedBones = {
-            HumanBodyBones.Hips, HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot,
-            /*HumanBodyBones.LeftLowerArm, HumanBodyBones.RightLowerArm,
-            HumanBodyBones.LeftLowerLeg, HumanBodyBones.RightLowerLeg,
-            HumanBodyBones.Chest*/
-        };
-
-        // Gets the SteamVR tracker for a certain bone
-        private static Transform GetTracker(HumanBodyBones bodyPart)
-        {
-            var puckArray = GetSteamVRControllerManager().field_Public_ArrayOf_GameObject_0;
-            for (int i = 0; i < puckArray.Length - 2; i++)
-            {
-                if (puckArray[i + 2].transform != null)
-                {
-                    if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
-                    {
-                        return puckArray[i + 2].transform;
-                    }
-                }
-            }
-            return null;
-        }
-
-        // Finds the nearest bone to the transform of a SteamVR tracker
-        private static HumanBodyBones FindAssignedBone(Transform trackerTransform) 
-        {
-            HumanBodyBones result = HumanBodyBones.LastBone;
-            float distance = float.MaxValue;
-            foreach (HumanBodyBones bone in LinkedBones)
-            {
-                Transform lBoneTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(bone);
-                if (lBoneTransform == null) continue;
-                float lDistanceToPuck = Vector3.Distance(lBoneTransform.position, trackerTransform.position);
-                if (!(lDistanceToPuck < distance)) continue;
-                distance = lDistanceToPuck;
-                result = bone;
-            }
-            return result;
         }
 
         private static bool _isInFbt, _isCalibrating;
-        private static int _checkStuffTimer, _CalibrationSavingSaverTimer;
         private static float _avatarScaledSpeed = 1;
         private static GameObject _offsetHip, _offsetChest;
-        private static Transform _headTransform, _hipTransform, _chestTransform, getTrackerHip, getTrackerChest;
-        private static GamelikeInputController inputController = null;
+        private static Transform _headTransform, _hipTransform, _chestTransform;
+        private static InputManager inputManager;
         private static Transform HeadTransform => // Gets the head transform
-            _headTransform ??= Resources.FindObjectsOfTypeAll<NeckMouseRotator>()[0].transform.Find(Environment.CurrentDirectory.Contains("vrchat-vrchat") ? "CenterEyeAnchor" : "Camera (eye)");
+            _headTransform ??= GetLocalPlayer().vrHeadTracker.transform;
 
         // Fixes the game's original direction to match the preferred one
         private static Vector3 CalculateDirection()
         {
             if (_locomotionMode.Value == Locomotion.Deca && deca != null) deca.HeadTransform = HeadTransform;
+
+            _isInFbt = CheckIfInFbt();
 
             Vector3 @return = _locomotionMode.Value switch
             {
@@ -281,21 +205,14 @@ namespace BetterLocomotion
                 _ => CalculateLocomotion(HeadTransform),
             };
 
-            _checkStuffTimer++;
-            if (_checkStuffTimer <= 50) return @return; // doing this is ~60 times less heavy on performance than calling CheckIfInFbt() and GetAvatarScaledSpeed().
-
-            _checkStuffTimer = 0;
-            _isInFbt = CheckIfInFbt();
-            _avatarScaledSpeed = GetAvatarScaledSpeed();
             return @return;
         }
 
-        private static Vector3 CalculateLocomotion(Transform trackerTransform) // Thanks AxisAngle for the code!
+        private static Vector3 CalculateLocomotion(Transform trackerTransform) // Thanks AxisAngle for the math!
         {
             // Get joystick inputs
-            if (inputController == null) inputController = GetLocalPlayer().GetComponent<GamelikeInputController>();
-            float inputX = inputController.field_Protected_VRCInput_0.field_Public_Single_0;
-            float inputY = inputController.field_Protected_VRCInput_1.field_Public_Single_0;
+            float inputX = ;
+            float inputY = ;
             float inputMag = Mathf.Sqrt(inputX * inputX + inputY * inputY);
 
             // Early escape to avoid division by 0
@@ -317,7 +234,7 @@ namespace BetterLocomotion
             else speedMod = 1.0f;
             if (_lolimotion.Value == true) speedMod *= _avatarScaledSpeed;
 
-            VRCPlayerApi playerApi = GetLocalPlayer().field_Private_VRCPlayerApi_0;
+            VRCPlayerApi playerApi = ;
             float ovalWidth = inputMod * speedMod * playerApi.GetStrafeSpeed();
             float ovalHeight = inputMod * speedMod * playerApi.GetRunSpeed();
 

@@ -2,10 +2,6 @@ using System.Reflection;
 using System.Linq;
 using MelonLoader;
 
-/*
- * Code by SDraw
- */
-
 namespace BetterLocomotion
 {
     internal static class MethodsResolver
@@ -13,8 +9,8 @@ namespace BetterLocomotion
         internal static MelonLogger.Instance Logger;
 
         private static MethodInfo ms_playerLocomotion;
-        private static MethodInfo ms_prepareForCalibration;
-        private static MethodInfo ms_restoreTrackingAfterCalibration;
+        private static MethodInfo ms_startCalibration;
+        private static MethodInfo ms_finishCalibration;
 
         public static void ResolveMethods(MelonLogger.Instance loggerInstance)
         {
@@ -22,12 +18,12 @@ namespace BetterLocomotion
 
             if (ms_playerLocomotion == null)
             {
-                var l_methods = ;// TODO get method
+                var l_methods = nu; // TODO get method
                 );
 
                 if (l_methods.Any())
                 {
-                    ms_prepareForCalibration = l_methods.First();
+                    ms_startCalibration = l_methods.First();
                 }
                 else
                 {
@@ -36,27 +32,27 @@ namespace BetterLocomotion
             }
 
             // void VRCTrackingManager.PrepareForCalibration()
-            if (ms_prepareForCalibration == null)
+            if (ms_startCalibration == null)
             {
-                var l_methods = ;// TODO get method
+                var l_methods = ; // TODO get method
                 );
 
                 if (l_methods.Any())
                 {
-                    ms_prepareForCalibration = l_methods.First();
+                    ms_startCalibration = l_methods.First();
                 }
                 else
                     Logger.Warning("Can't resolve start calibration's method");
             }
 
-            if (ms_restoreTrackingAfterCalibration == null)
+            if (ms_finishCalibration == null)
             {
-                var l_methods = ;// TODO get method
+                var l_methods = ; // TODO get method
                 );
 
                 if (l_methods.Any())
                 {
-                    ms_restoreTrackingAfterCalibration = l_methods.First();
+                    ms_finishCalibration = l_methods.First();
                 }
                 else
                 {
@@ -67,15 +63,15 @@ namespace BetterLocomotion
 
         public static MethodInfo PlayerLocomotion
         {
-            get => ms_restoreTrackingAfterCalibration;
+            get => ms_finishCalibration;
         }
-        public static MethodInfo PrepareForCalibration
+        public static MethodInfo StartCalibration
         {
-            get => ms_prepareForCalibration;
+            get => ms_startCalibration;
         }
-        public static MethodInfo RestoreTrackingAfterCalibration
+        public static MethodInfo FinishCalibration
         {
-            get => ms_restoreTrackingAfterCalibration;
+            get => ms_finishCalibration;
         }
     }
 }

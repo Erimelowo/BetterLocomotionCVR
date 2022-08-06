@@ -13,7 +13,7 @@
 		<Reference Include="System" />
 		<Reference Include="Microsoft.CSharp" />
 		<Reference Include="Assembly-CSharp">
-			<HintPath>$(MelonManaged)\Assembly-CSharp.dll</HintPath>
+			<HintPath>$(MonoManaged)\Assembly-CSharp.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
 		<Reference Include="Il2Cppmscorlib">
